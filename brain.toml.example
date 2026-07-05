@@ -1,0 +1,47 @@
+# Copy to brain.toml (repo root, ~/.config/brain/brain.toml, or set BRAIN_CONFIG)
+
+[vault]
+# Absolute path to the brain vault repo (the data repo, not this one)
+path = "~/brain"
+
+[search]
+# "keyword" (SQLite FTS5, zero deps) or "qmd" (wraps the qmd CLI if installed)
+backend = "keyword"
+# qmd_command = "qmd"
+
+[ingest]
+# Per-module settings. Every module stages into raw/<name>/ only.
+[ingest.hermes]
+enabled = false
+# memory_path = "~/.hermes/memory"
+
+[ingest.pai]
+enabled = false
+# pai_path = "~/pai/memory"
+
+[ingest.sessions]
+# Staged via the Claude Code SessionEnd hook (hooks/session_end.sh) or
+# manually: brain ingest sessions <transcript.jsonl>
+enabled = true
+
+[integrator]
+# Internal integration agent (phase 2 without external agents).
+# Cron `brain integrate-run --apply` after acquisition to stay self-contained;
+# or leave it to external agents over MCP — both mark the same manifest flag.
+model = "claude-sonnet-4-6"
+max_items_per_run = 10
+max_pages_per_item = 6
+dry_run = true
+
+[gardener]
+# Mechanical pass is always free. LLM passes need ANTHROPIC_API_KEY.
+llm_enabled = false
+# Model tiering: routine curation on the cheap tier, synthesis on premium.
+curator_model = "claude-haiku-4-5-20251001"
+synthesis_model = "claude-sonnet-4-6"
+# Weekly whole-vault review page (syntheses/weekly-YYYY-WW.md, one per week)
+synthesis_enabled = false
+max_pages_edited_per_run = 10
+max_new_pages_per_run = 3
+dry_run = true          # flip to false once you trust it
+git_commit = true       # commit vault after each run for rollback
