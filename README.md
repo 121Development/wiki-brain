@@ -43,6 +43,29 @@ brain garden --no-llm
 { "mcpServers": { "brain": { "command": "brain", "args": ["serve"] } } }
 ```
 
+## Acquisition modules (pull, never push)
+
+The brain FETCHES from agent memories on its own schedule; agents never write
+into the vault. Modules implement `fetch()` (side-effect free, yields items);
+the runner stages into `raw/<module>/` with provenance frontmatter and
+content-hash dedup. Living source files restage automatically when they
+change — the integrator folds updates in (never deletes silently).
+
+| Module | Pulls | Item granularity |
+|--------|-------|------------------|
+| `hermes` | Hermes agent memory (`SOUL.md`, `memories/*.md`) | one item per `##` section, verbatim |
+| `pai` | PAI memory: completed work ISAs, learning reflections, knowledge notes, telos, project state | file per item; jsonl per line |
+| `sessions` | Claude Code transcripts (via SessionEnd hook) | digest per session |
+| `manual` | anything you point it at | file |
+
+Configure roots and globs in `brain.toml` (`[ingest.hermes]`, `[ingest.pai]`).
+A missing source root is a stderr warning + zero items, never an error — cron
+chains keep running while a source isn't wired up yet.
+
+**Remote sources:** if an agent lives on another machine, sync its memory tree
+here first, in the same cron slot: e.g.
+`rsync -az otherhost:~/.hermes/ ~/.hermes/ && brain ingest hermes`.
+
 ## Cron (example)
 
 ```cron
@@ -53,6 +76,9 @@ brain garden --no-llm
 30 3 * * * brain garden --apply
 0 4 * * 0  brain synthesize --apply
 ```
+
+Acquisition lines are safe to install anytime (stage-only, no LLM). Hold the
+`--apply` lines until the LLM passes have produced sane plans in dry-run.
 
 ## Playbooks (pointing external agents at the brain)
 

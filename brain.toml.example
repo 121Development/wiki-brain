@@ -11,18 +11,32 @@ backend = "keyword"
 
 [ingest]
 # Per-module settings. Every module stages into raw/<name>/ only.
-[ingest.hermes]
-enabled = false
-# memory_path = "~/.hermes/memory"
-
-[ingest.pai]
-enabled = false
-# pai_path = "~/pai/memory"
-
 [ingest.sessions]
 # Staged via the Claude Code SessionEnd hook (hooks/session_end.sh) or
 # manually: brain ingest sessions <transcript.jsonl>
 enabled = true
+
+[ingest.hermes]
+# Pull Hermes agent memory (living markdown files, split per ## section).
+# If Hermes runs on another machine, rsync its memory tree here first —
+# a missing memory_path is a warning + zero items, never a cron-breaking error.
+enabled = false
+memory_path = "~/.hermes"
+sources = ["SOUL.md", "memories/*.md"]
+
+[ingest.pai]
+# Pull PAI memory: completed work articulations, learning reflections (jsonl,
+# per-line), knowledge notes, telos, project state. All globs configurable.
+enabled = false
+pai_root = "~/.claude/PAI"
+sources = [
+  "MEMORY/WORK/*/ISA.md",
+  "MEMORY/LEARNING/REFLECTIONS/*.jsonl",
+  "MEMORY/KNOWLEDGE/**/*.md",
+  "USER/TELOS/*.md",
+  "USER/PROJECTS/PROJECTS.md",
+]
+exclude = ["**/README.md", "README.md"]
 
 [integrator]
 # Internal integration agent (phase 2 without external agents).
